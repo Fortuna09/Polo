@@ -1,9 +1,16 @@
 import { useState, useEffect } from 'react';
+
+//components
 import { Header } from "../components/Header";
 import { Sidebar } from "../components/Sidebar";
-import { fetchGdpData } from '../services/worldBankApi';
 import { BarChart } from '../components/BarChart';
+import { LineChart } from '../components/LineChart';
 import { ChartSkeleton } from '../components/ChartSkeleton';
+
+//services
+import { fetchGdpData } from '../services/worldBankApi';
+import { countryNameMap } from '../lib/translations'
+
 
 function formatLargeNumber(value: number) {
   if (value >= 1e12) {
@@ -22,6 +29,7 @@ export function DashboardPage() {
 
   const [selectedCountries, setSelectedCountries] = useState<string[]>(['BR', 'US', 'CN', 'IN', 'DE']);
   const [selectedYear, setSelectedYear] = useState('2022');
+  const [chartType, setChartType] = useState<'bar' | 'line'>('bar');
 
   useEffect(() => {
     if (selectedCountries.length > 0) {
@@ -37,29 +45,52 @@ export function DashboardPage() {
         }
       }
       loadData();
+    } else {
+      setGdpData([]);
     }
-  }, [selectedCountries, selectedYear]);
+  }, [selectedCountries]);
 
   useEffect(() => {
     if (gdpData && gdpData.length > 0) {
-      const filteredData = gdpData.filter(item => item.date === selectedYear && item.value !== null);
-
-      const processedData = {
-        labels: filteredData.map(item => item.country.value),
-        datasets: [
-          {
+      if (chartType === 'bar') {
+        const filteredData = gdpData.filter(item => item.date === selectedYear && item.value !== null);
+        setChartData({
+          labels: filteredData.map(item => countryNameMap[item.country.id] || item.country.value),
+          datasets: [{
             label: `PIB em ${selectedYear} (US$)`,
             data: filteredData.map(item => item.value),
             backgroundColor: 'rgba(34, 197, 94, 0.7)',
             borderColor: 'rgba(34, 197, 94, 1)',
             borderWidth: 1,
             borderRadius: 4,
-          },
-        ],
-      };
-      setChartData(processedData);
+          }],
+        });
+      } else {
+        const years = [...new Set(gdpData.map(item => item.date))].sort((a, b) => Number(a) - Number(b));
+
+        const datasets = selectedCountries.map(countryCode => {
+          const countryName = countryNameMap[countryCode] || countryCode;
+          const color = `rgba(${Math.floor(Math.random() * 200) + 55}, ${Math.floor(Math.random() * 200) + 55}, ${Math.floor(Math.random() * 200) + 55}, 1)`;
+
+          return {
+            label: countryName,
+            data: years.map(year => {
+              const dataPoint = gdpData.find(d => d.country.id === countryCode && d.date === year);
+              return dataPoint ? dataPoint.value : null;
+            }),
+            borderColor: color,
+            backgroundColor: color,
+            fill: false,
+            tension: 0.2
+          };
+        });
+        setChartData({ labels: years, datasets });
+      }
+    } else {
+      setChartData(null);
     }
-  }, [gdpData, selectedYear]);
+  }, [gdpData, selectedYear, chartType, selectedCountries]);
+
 
 
   const chartOptions = {
@@ -88,11 +119,17 @@ export function DashboardPage() {
     },
     plugins: {
       legend: {
-        display: false,
+        display: chartType === 'line',
+        position: 'top' as const,
+        labels: {
+          color: 'rgb(156, 163, 175)'
+        }
       },
       title: {
         display: true,
-        text: `PIB por País em ${selectedYear} (US$)`,
+        text: chartType === 'bar'
+          ? `PIB por País em ${selectedYear} (US$)`
+          : 'Tendência do PIB ao Longo dos Anos',
         color: 'rgb(255, 255, 255)',
         font: {
           size: 18
@@ -105,13 +142,18 @@ export function DashboardPage() {
         callbacks: {
           label: function (context: any) {
             const value = context.parsed.y;
+            if (value === null) return '';
             const formattedValue = new Intl.NumberFormat('en-US', {
               style: 'currency',
               currency: 'USD',
               notation: 'compact',
               maximumFractionDigits: 2
             }).format(value);
-            return `PIB: ${formattedValue}`;
+            let label = context.dataset.label || '';
+            if (label) {
+              label += ': ';
+            }
+            return `${label}${formattedValue}`;
           }
         }
       }
@@ -125,22 +167,44 @@ export function DashboardPage() {
         <Sidebar
           selectedYear={selectedYear}
           onYearChange={setSelectedYear}
-          selectedCountries={selectedCountries} 
-          onCountryChange={setSelectedCountries}  
+          selectedCountries={selectedCountries}
+          onCountryChange={setSelectedCountries}
         />
         <main className="flex-1 p-6 overflow-y-auto">
-          <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold">Dashboard</h1>
+            <div className="flex items-center bg-slate-800 rounded-lg p-1">
+              <button
+                onClick={() => setChartType('bar')}
+                className={`px-4 py-1 rounded-md text-sm font-semibold transition-colors ${chartType === 'bar' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-700'
+                  }`}
+              >
+                Comparação
+              </button>
+              <button
+                onClick={() => setChartType('line')}
+                className={`px-4 py-1 rounded-md text-sm font-semibold transition-colors ${chartType === 'line' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-700'
+                  }`}
+              >
+                Tendência
+              </button>
+            </div>
+          </div>
           <div className="bg-slate-800 p-6 rounded-lg h-[500px] relative">
-            {isLoading ? (
-              <ChartSkeleton />
-            ) : chartData ? (
-              <BarChart options={chartOptions} data={chartData} />
-            ) : (
-              <p className="text-slate-400">Não foi possível carregar os dados do gráfico.</p>
+            {isLoading ? <ChartSkeleton /> : (
+              chartData ? (
+                chartType === 'bar' ? (
+                  <BarChart options={chartOptions} data={chartData} />
+                ) : (
+                  <LineChart options={chartOptions} data={chartData} />
+                )
+              ) : (
+                <p className="text-slate-400">Dados não disponíveis para a seleção atual.</p>
+              )
             )}
           </div>
         </main>
       </div>
     </div>
-  )
+  );
 }
