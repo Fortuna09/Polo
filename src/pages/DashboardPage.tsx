@@ -6,10 +6,10 @@ import { BarChart } from '../components/BarChart';
 import { ChartSkeleton } from '../components/ChartSkeleton';
 
 function formatLargeNumber(value: number) {
-  if (value >= 1e12) { 
+  if (value >= 1e12) {
     return (value / 1e12).toFixed(2) + 'T';
   }
-  if (value >= 1e9) { 
+  if (value >= 1e9) {
     return (value / 1e9).toFixed(2) + 'B';
   }
   return value.toString();
@@ -19,22 +19,26 @@ export function DashboardPage() {
   const [gdpData, setGdpData] = useState<any[]>([]);
   const [chartData, setChartData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedYear, setSelectedYear] = useState('2022'); 
+
+  const [selectedCountries, setSelectedCountries] = useState<string[]>(['BR', 'US', 'CN', 'IN', 'DE']);
+  const [selectedYear, setSelectedYear] = useState('2022');
 
   useEffect(() => {
-    async function loadData() {
-      setIsLoading(true);
-      try {
-        const data = await fetchGdpData();
-        setGdpData(data);
-      } catch (error) {
-        console.error("Falha ao carregar dados", error);
-      } finally {
-        setIsLoading(false);
+    if (selectedCountries.length > 0) {
+      async function loadData() {
+        setIsLoading(true);
+        try {
+          const data = await fetchGdpData(selectedCountries);
+          setGdpData(data);
+        } catch (error) {
+          console.error("Falha ao carregar dados", error);
+        } finally {
+          setIsLoading(false);
+        }
       }
+      loadData();
     }
-    loadData();
-  }, []);
+  }, [selectedCountries, selectedYear]);
 
   useEffect(() => {
     if (gdpData && gdpData.length > 0) {
@@ -55,25 +59,25 @@ export function DashboardPage() {
       };
       setChartData(processedData);
     }
-  }, [gdpData, selectedYear]); 
+  }, [gdpData, selectedYear]);
 
-  
+
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     scales: {
-      y: { 
+      y: {
         ticks: {
-          color: 'rgb(156, 163, 175)', 
-          callback: function(value: string | number) {
+          color: 'rgb(156, 163, 175)',
+          callback: function (value: string | number) {
             return formatLargeNumber(Number(value));
           }
         },
         grid: {
-          color: 'rgba(255, 255, 255, 0.1)' 
+          color: 'rgba(255, 255, 255, 0.1)'
         }
       },
-      x: { 
+      x: {
         ticks: {
           color: 'rgb(156, 163, 175)',
         },
@@ -91,15 +95,15 @@ export function DashboardPage() {
         text: `PIB por País em ${selectedYear} (US$)`,
         color: 'rgb(255, 255, 255)',
         font: {
-            size: 18
+          size: 18
         }
       },
-      tooltip: { 
+      tooltip: {
         backgroundColor: 'rgb(15, 23, 42)',
         titleFont: { size: 16 },
         bodyFont: { size: 14 },
         callbacks: {
-          label: function(context: any) {
+          label: function (context: any) {
             const value = context.parsed.y;
             const formattedValue = new Intl.NumberFormat('en-US', {
               style: 'currency',
@@ -118,13 +122,15 @@ export function DashboardPage() {
     <div className="h-screen bg-slate-900 text-white flex flex-col">
       <Header />
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar 
-            selectedYear={selectedYear} 
-            onYearChange={setSelectedYear} 
+        <Sidebar
+          selectedYear={selectedYear}
+          onYearChange={setSelectedYear}
+          selectedCountries={selectedCountries} 
+          onCountryChange={setSelectedCountries}  
         />
         <main className="flex-1 p-6 overflow-y-auto">
           <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-          <div className="bg-slate-800 p-6 rounded-lg h-[500px] relative"> 
+          <div className="bg-slate-800 p-6 rounded-lg h-[500px] relative">
             {isLoading ? (
               <ChartSkeleton />
             ) : chartData ? (

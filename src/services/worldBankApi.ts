@@ -4,10 +4,16 @@ const API_URL = 'https://api.worldbank.org/v2';
 
 const GDP_INDICATOR = 'NY.GDP.MKTP.CD'; 
 
-const COUNTRIES = 'BR;US;CN;IN;DE';
+/**
+ * Função para buscar dados do PIB de um ou mais países usando a API do Banco Mundial.
+ * @param {string[]} countries - Lista de códigos dos países (ex: ['BR', 'US']).
+ * @returns {Promise<any[]>} - Retorna uma promessa que resolve com os dados do PIB.
+ */
+export async function fetchGdpData(countries: string[]) {
 
-export async function fetchGdpData() {
-  const requestUrl = `${API_URL}/country/${COUNTRIES}/indicator/${GDP_INDICATOR}?date=2020:2022&format=json`;
+  const countryString = countries.join(';');
+  const requestUrl = `${API_URL}/country/${countryString}/indicator/${GDP_INDICATOR}?date=2020:2022&format=json`;
+
 
   console.log("Buscando dados em:", requestUrl);
 
