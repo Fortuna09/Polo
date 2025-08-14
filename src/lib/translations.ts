@@ -8,3 +8,13 @@ export const countryNameMap: { [key: string]: string } = {
   JP: 'Japão',
   GB: 'Reino Unido',
 };
+
+export const countryCodeMap: { [key: string]: string } = {
+  'Brazil': 'BR',
+  'United States of America': 'US', 
+  'China': 'CN',
+  'India': 'IN',
+  'Germany': 'DE',
+  'Japan': 'JP',
+  'United Kingdom': 'GB',
+};

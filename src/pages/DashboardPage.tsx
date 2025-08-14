@@ -6,6 +6,7 @@ import { Sidebar } from "../components/Sidebar";
 import { BarChart } from '../components/BarChart';
 import { LineChart } from '../components/LineChart';
 import { ChartSkeleton } from '../components/ChartSkeleton';
+import { WorldMap } from '../components/WorldMap';
 
 //services
 import { fetchGdpData } from '../services/worldBankApi';
@@ -29,7 +30,7 @@ export function DashboardPage() {
 
   const [selectedCountries, setSelectedCountries] = useState<string[]>(['BR', 'US', 'CN', 'IN', 'DE']);
   const [selectedYear, setSelectedYear] = useState('2022');
-  const [chartType, setChartType] = useState<'bar' | 'line'>('bar');
+  const [chartType, setChartType] = useState<'bar' | 'line' | 'map'>('bar');
 
   useEffect(() => {
     if (selectedCountries.length > 0) {
@@ -52,10 +53,15 @@ export function DashboardPage() {
 
   useEffect(() => {
     if (gdpData && gdpData.length > 0) {
-      if (chartType === 'bar') {
+      if (chartType === 'bar' || chartType === 'map') {
         const filteredData = gdpData.filter(item => item.date === selectedYear && item.value !== null);
         setChartData({
           labels: filteredData.map(item => countryNameMap[item.country.id] || item.country.value),
+          rawData: filteredData.map(item => ({ 
+            countryCode: item.country.id, 
+            value: item.value,
+            name: countryNameMap[item.country.id] || item.country.value
+          })),
           datasets: [{
             label: `PIB em ${selectedYear} (US$)`,
             data: filteredData.map(item => item.value),
@@ -188,16 +194,24 @@ export function DashboardPage() {
               >
                 Tendência
               </button>
+              <button
+                onClick={() => setChartType('map')}
+                className={`px-4 py-1 rounded-md text-sm font-semibold transition-colors ${
+                  chartType === 'map' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-700'
+                }`}
+              >
+                Mapa
+              </button>
             </div>
           </div>
           <div className="bg-slate-800 p-6 rounded-lg h-[500px] relative">
             {isLoading ? <ChartSkeleton /> : (
               chartData ? (
-                chartType === 'bar' ? (
-                  <BarChart options={chartOptions} data={chartData} />
-                ) : (
-                  <LineChart options={chartOptions} data={chartData} />
-                )
+                <> 
+                  {chartType === 'bar' && <BarChart options={chartOptions} data={chartData} />}
+                  {chartType === 'line' && <LineChart options={chartOptions} data={chartData} />}
+                  {chartType === 'map' && <WorldMap data={chartData.rawData} />}
+                </>
               ) : (
                 <p className="text-slate-400">Dados não disponíveis para a seleção atual.</p>
               )

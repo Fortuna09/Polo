@@ -1,3 +1,17 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+ .map-tooltip-style {
+  background-color: rgba(15, 23, 42, 0.9) !important;
+  color: #cbd5e1 !important;
+  padding: 8px 12px !important;
+  margin-top: 30px !important;
+  border-radius: 6px !important;
+  font-size: 0.9em !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  max-width: 250px !important;
+  text-align: center !important;
+  pointer-events: none !important;
+ }
