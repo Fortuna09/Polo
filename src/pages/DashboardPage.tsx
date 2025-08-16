@@ -27,6 +27,10 @@ function formatValue(value: number, unit: string) {
   return new Intl.NumberFormat('pt-BR', { notation: 'compact' }).format(value);
 }
 
+function getCssVariable(variable: string) {
+  return getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
+}
+
 export function DashboardPage() {
   const [apiData, setApiData] = useState<any[]>([]);
   const [chartData, setChartData] = useState<any>(null);
@@ -70,8 +74,8 @@ export function DashboardPage() {
           datasets: [{
             label: `${selectedIndicator.label} em ${selectedYear}`,
             data: filteredData.map(item => item.value),
-            backgroundColor: 'rgba(34, 197, 94, 0.7)',
-            borderColor: 'rgba(34, 197, 94, 1)',
+            backgroundColor: getCssVariable('--accent') + 'B3',
+            borderColor: getCssVariable('--accent'),
             borderWidth: 1,
             borderRadius: 4,
           }],
@@ -157,7 +161,7 @@ export function DashboardPage() {
             const formattedValue = formatValue(value, selectedIndicator.unit);
             let label = context.dataset.label || '';
             if (chartType !== 'line' && label) {
-              label = context.label || ''; 
+              label = context.label || '';
             }
 
             if (label) {
@@ -171,7 +175,7 @@ export function DashboardPage() {
   };
 
   return (
-    <div className="h-screen bg-slate-900 text-white flex flex-col">
+    <div className="h-screen bg-background text-text-primary flex flex-col">
       <Header />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar
@@ -188,24 +192,24 @@ export function DashboardPage() {
         <main className="flex-1 p-6 overflow-y-auto">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold">Dashboard</h1>
-            <div className="flex items-center bg-slate-800 rounded-lg p-1">
+            <div className="flex items-center bg-surface rounded-lg p-1">
               <button
                 onClick={() => setChartType('bar')}
-                className={`px-4 py-1 rounded-md text-sm font-semibold transition-colors ${chartType === 'bar' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-700'
+                className={`px-4 py-1 rounded-md text-sm font-semibold transition-colors ${chartType === 'bar' ? 'bg-accent text-white' : 'text-slate-400 hover:bg-slate-700'
                   }`}
               >
                 Comparação
               </button>
               <button
                 onClick={() => setChartType('line')}
-                className={`px-4 py-1 rounded-md text-sm font-semibold transition-colors ${chartType === 'line' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-700'
+                className={`px-4 py-1 rounded-md text-sm font-semibold transition-colors ${chartType === 'line' ? 'bg-accent text-white' : 'text-slate-400 hover:bg-slate-700'
                   }`}
               >
                 Tendência
               </button>
               <button
                 onClick={() => setChartType('map')}
-                className={`px-4 py-1 rounded-md text-sm font-semibold transition-colors ${chartType === 'map' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-700'
+                className={`px-4 py-1 rounded-md text-sm font-semibold transition-colors ${chartType === 'map' ? 'bg-accent text-white' : 'text-slate-400 hover:bg-slate-700'
                   }`}
               >
                 Mapa

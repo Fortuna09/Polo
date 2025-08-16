@@ -1,12 +1,22 @@
+/* src/index.css */
+:root {
+  --background: #0D1117;
+  --surface: #161B22;
+  --border: #30363D;
+  --text-primary: #E6EDF3;
+  --text-secondary: #8B949E;
+  --accent: #8867FF;
+  --accent-hover: #7152d9;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
- .map-tooltip-style {
+.map-tooltip-style {
   background-color: rgba(15, 23, 42, 0.9) !important;
   color: #cbd5e1 !important;
   padding: 8px 12px !important;
-  margin-top: 30px !important;
   border-radius: 6px !important;
   font-size: 0.9em !important;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4) !important;
@@ -14,4 +24,4 @@
   max-width: 250px !important;
   text-align: center !important;
   pointer-events: none !important;
- }
+}

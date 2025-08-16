@@ -36,7 +36,7 @@ export function CountrySelector({ selectedCountries, onCountryChange }: CountryS
               onChange={() => handleCheckboxChange(country.code)}
               className="form-checkbox h-4 w-4 bg-slate-600 border-slate-500 rounded text-blue-500 focus:ring-blue-500"
             />
-            <span className="text-slate-300">{countryNameMap[country.code] || country.name}</span>
+            <span className="text-text-primary">{countryNameMap[country.code] || country.name}</span>
           </label>
         ))}
       </div>
