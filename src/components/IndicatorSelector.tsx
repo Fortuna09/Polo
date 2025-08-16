@@ -1,4 +1,5 @@
-import { INDICATORS, Indicator } from '../lib/indicators';
+import { INDICATORS } from '../lib/indicators';
+import type { Indicator } from '../lib/indicators';
 
 interface IndicatorSelectorProps {
   selectedIndicator: string;
