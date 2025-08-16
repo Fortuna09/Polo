@@ -8,37 +8,42 @@ import { LineChart } from '../components/LineChart';
 import { ChartSkeleton } from '../components/ChartSkeleton';
 import { WorldMap } from '../components/WorldMap';
 
-//services
-import { fetchGdpData } from '../services/worldBankApi';
-import { countryNameMap } from '../lib/translations'
+//services and libs
+import { fetchWorldBankData } from '../services/worldBankApi';
+import { countryNameMap } from '../lib/translations';
+import { INDICATORS } from '../lib/indicators';
+import type { Indicator } from '../lib/indicators';
 
 
-function formatLargeNumber(value: number) {
-  if (value >= 1e12) {
-    return (value / 1e12).toFixed(2) + 'T';
+function formatValue(value: number, unit: string) {
+  if (value === null) return 'N/A';
+  if (unit === 'US$') {
+    if (value >= 1e12) return (value / 1e12).toFixed(2) + 'T';
+    if (value >= 1e9) return (value / 1e9).toFixed(2) + 'B';
   }
-  if (value >= 1e9) {
-    return (value / 1e9).toFixed(2) + 'B';
+  if (unit === 'Anos') {
+    return value.toFixed(1);
   }
-  return value.toString();
+  return new Intl.NumberFormat('pt-BR', { notation: 'compact' }).format(value);
 }
 
 export function DashboardPage() {
-  const [gdpData, setGdpData] = useState<any[]>([]);
+  const [apiData, setApiData] = useState<any[]>([]);
   const [chartData, setChartData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const [selectedCountries, setSelectedCountries] = useState<string[]>(['BR', 'US', 'CN', 'IN', 'DE']);
   const [selectedYear, setSelectedYear] = useState('2022');
   const [chartType, setChartType] = useState<'bar' | 'line' | 'map'>('bar');
+  const [selectedIndicator, setSelectedIndicator] = useState<Indicator>(INDICATORS[0]);
 
   useEffect(() => {
     if (selectedCountries.length > 0) {
       async function loadData() {
         setIsLoading(true);
         try {
-          const data = await fetchGdpData(selectedCountries);
-          setGdpData(data);
+          const data = await fetchWorldBankData(selectedCountries, selectedIndicator.code);
+          setApiData(data);
         } catch (error) {
           console.error("Falha ao carregar dados", error);
         } finally {
@@ -47,23 +52,23 @@ export function DashboardPage() {
       }
       loadData();
     } else {
-      setGdpData([]);
+      setApiData([]);
     }
-  }, [selectedCountries]);
+  }, [selectedCountries, selectedIndicator]);
 
   useEffect(() => {
-    if (gdpData && gdpData.length > 0) {
+    if (apiData && apiData.length > 0) {
       if (chartType === 'bar' || chartType === 'map') {
-        const filteredData = gdpData.filter(item => item.date === selectedYear && item.value !== null);
+        const filteredData = apiData.filter(item => item.date === selectedYear && item.value !== null);
         setChartData({
           labels: filteredData.map(item => countryNameMap[item.country.id] || item.country.value),
-          rawData: filteredData.map(item => ({ 
-            countryCode: item.country.id, 
+          rawData: filteredData.map(item => ({
+            countryCode: item.country.id,
             value: item.value,
             name: countryNameMap[item.country.id] || item.country.value
           })),
           datasets: [{
-            label: `PIB em ${selectedYear} (US$)`,
+            label: `${selectedIndicator.label} em ${selectedYear}`,
             data: filteredData.map(item => item.value),
             backgroundColor: 'rgba(34, 197, 94, 0.7)',
             borderColor: 'rgba(34, 197, 94, 1)',
@@ -72,7 +77,7 @@ export function DashboardPage() {
           }],
         });
       } else {
-        const years = [...new Set(gdpData.map(item => item.date))].sort((a, b) => Number(a) - Number(b));
+        const years = [...new Set(apiData.map(item => item.date))].sort((a, b) => Number(a) - Number(b));
 
         const datasets = selectedCountries.map(countryCode => {
           const countryName = countryNameMap[countryCode] || countryCode;
@@ -81,7 +86,7 @@ export function DashboardPage() {
           return {
             label: countryName,
             data: years.map(year => {
-              const dataPoint = gdpData.find(d => d.country.id === countryCode && d.date === year);
+              const dataPoint = apiData.find(d => d.country.id === countryCode && d.date === year);
               return dataPoint ? dataPoint.value : null;
             }),
             borderColor: color,
@@ -95,7 +100,7 @@ export function DashboardPage() {
     } else {
       setChartData(null);
     }
-  }, [gdpData, selectedYear, chartType, selectedCountries]);
+  }, [apiData, selectedYear, chartType, selectedCountries, selectedIndicator]);
 
 
 
@@ -107,7 +112,7 @@ export function DashboardPage() {
         ticks: {
           color: 'rgb(156, 163, 175)',
           callback: function (value: string | number) {
-            return formatLargeNumber(Number(value));
+            return formatValue(Number(value), selectedIndicator.unit);
           }
         },
         grid: {
@@ -133,9 +138,9 @@ export function DashboardPage() {
       },
       title: {
         display: true,
-        text: chartType === 'bar'
-          ? `PIB por País em ${selectedYear} (US$)`
-          : 'Tendência do PIB ao Longo dos Anos',
+        text: chartType === 'bar' || chartType === 'map'
+          ? `${selectedIndicator.label} em ${selectedYear}`
+          : `Tendência de ${selectedIndicator.label}`,
         color: 'rgb(255, 255, 255)',
         font: {
           size: 18
@@ -149,13 +154,12 @@ export function DashboardPage() {
           label: function (context: any) {
             const value = context.parsed.y;
             if (value === null) return '';
-            const formattedValue = new Intl.NumberFormat('en-US', {
-              style: 'currency',
-              currency: 'USD',
-              notation: 'compact',
-              maximumFractionDigits: 2
-            }).format(value);
+            const formattedValue = formatValue(value, selectedIndicator.unit);
             let label = context.dataset.label || '';
+            if (chartType !== 'line' && label) {
+              label = context.label || ''; 
+            }
+
             if (label) {
               label += ': ';
             }
@@ -175,6 +179,11 @@ export function DashboardPage() {
           onYearChange={setSelectedYear}
           selectedCountries={selectedCountries}
           onCountryChange={setSelectedCountries}
+          selectedIndicator={selectedIndicator.code}
+          onIndicatorChange={(indicatorCode) => {
+            const newIndicator = INDICATORS.find(ind => ind.code === indicatorCode);
+            if (newIndicator) setSelectedIndicator(newIndicator);
+          }}
         />
         <main className="flex-1 p-6 overflow-y-auto">
           <div className="flex justify-between items-center mb-6">
@@ -196,24 +205,22 @@ export function DashboardPage() {
               </button>
               <button
                 onClick={() => setChartType('map')}
-                className={`px-4 py-1 rounded-md text-sm font-semibold transition-colors ${
-                  chartType === 'map' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-700'
-                }`}
+                className={`px-4 py-1 rounded-md text-sm font-semibold transition-colors ${chartType === 'map' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-700'
+                  }`}
               >
                 Mapa
               </button>
             </div>
           </div>
-          <div className="bg-slate-800 p-6 rounded-lg h-[500px] relative">
+          <div className="bg-slate-800 p-6 rounded-lg h-[500px] relative flex justify-center items-center">
             {isLoading ? <ChartSkeleton /> : (
               chartData ? (
-                <> 
-                  {chartType === 'bar' && <BarChart options={chartOptions} data={chartData} />}
+                <>
+                  {(chartType === 'bar') && <BarChart options={chartOptions} data={chartData} />}
                   {chartType === 'line' && <LineChart options={chartOptions} data={chartData} />}
-                  {chartType === 'map' && <WorldMap data={chartData.rawData} />}
-                </>
+                  {chartType === 'map' && <WorldMap data={chartData.rawData} selectedIndicator={selectedIndicator} />}                </>
               ) : (
-                <p className="text-slate-400">Dados não disponíveis para a seleção atual.</p>
+                <p className="text-slate-400">Dados não disponíveis para a seleção atual ou nenhum país selecionado.</p>
               )
             )}
           </div>

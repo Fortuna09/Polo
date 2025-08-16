@@ -1,18 +1,26 @@
 import { CountrySelector } from "./CountrySelector";
+import { IndicatorSelector } from "./IndicatorSelector";
 
 interface SidebarProps {
   selectedYear: string;
   onYearChange: (year: string) => void;
   selectedCountries: string[];
   onCountryChange: (updatedCountries: string[]) => void;
+  selectedIndicator: string;
+  onIndicatorChange: (indicatorCode: string) => void;
 }
 
 const AVAILABLE_YEARS = ['2022', '2021', '2020'];
 
-export function Sidebar({ selectedYear, onYearChange, selectedCountries, onCountryChange }: SidebarProps) {
+export function Sidebar({ selectedYear, onYearChange, selectedCountries, onCountryChange, selectedIndicator, onIndicatorChange }: SidebarProps) {
   return (
     <aside className="w-72 bg-slate-800 p-6 flex flex-col space-y-6"> 
       <h2 className="text-lg font-semibold text-white">Filtros</h2>
+
+      <IndicatorSelector 
+        selectedIndicator={selectedIndicator}
+        onIndicatorChange={onIndicatorChange}
+      />
 
       <div className="flex flex-col space-y-2">
         <label className="text-sm text-slate-400">Ano</label>

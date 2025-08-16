@@ -4,25 +4,34 @@ import { scaleLinear } from "d3-scale";
 import { Tooltip } from 'react-tooltip';
 import { countryCodeMap } from "../lib/translations";
 import geoUrl from "../lib/world-110m.json";
+import type { Indicator } from '../lib/indicators';
 
-function formatGdpForTooltip(value: number): string {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
+
+function formatValueForMapTooltip(value: number, unit: string): string {
+    if (value === null) return 'N/A';
+
+    return new Intl.NumberFormat('pt-BR', {
+        style: unit === 'US$' ? 'currency' : 'decimal',
+        currency: unit === 'US$' ? 'USD' : undefined,
         notation: 'compact',
-        maximumFractionDigits: 2,
+        maximumFractionDigits: unit === 'Anos' ? 1 : 2, 
     }).format(value);
 }
 
 interface WorldMapProps {
     data?: { countryCode: string; value: number; name: string }[];
+    selectedIndicator: Indicator;
 }
 
-export function WorldMap({ data }: WorldMapProps) {
+export function WorldMap({ data, selectedIndicator }: WorldMapProps) {
     const [tooltipContent, setTooltipContent] = useState('');
 
     if (!data || data.length === 0) {
-        return <div className="text-slate-400">Aguardando dados para o mapa...</div>;
+        return (
+            <div className="flex justify-center items-center h-full">
+                <p className="text-slate-400">Selecione um ano e países para ver o mapa.</p>
+            </div>
+        );
     }
 
     const maxGdp = Math.max(...data.map(d => d.value).filter(v => v !== null), 0);
@@ -53,7 +62,8 @@ export function WorldMap({ data }: WorldMapProps) {
                                     stroke="#1e293b"
                                     strokeWidth={0.5}
                                     onMouseEnter={() => {
-                                        setTooltipContent(d ? `${d.name}: ${formatGdpForTooltip(d.value)}` : countryNameFromMap);
+                                        const { name } = geo.properties;
+                                        setTooltipContent(d ? `${d.name}: ${formatValueForMapTooltip(d.value, selectedIndicator.unit)}` : name);
                                     }}
                                     onMouseLeave={() => {
                                         setTooltipContent('');
@@ -72,7 +82,7 @@ export function WorldMap({ data }: WorldMapProps) {
             <Tooltip
                 id="map-tooltip"
                 content={tooltipContent}
-                className="map-tooltip-style" 
+                className="map-tooltip-style"
             />
         </>
     );
