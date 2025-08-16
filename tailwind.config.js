@@ -7,6 +7,15 @@ export default {
   ],
   theme: {
     extend: {
+      keyframes: {
+        'smooth-pulse': {
+          '0%, 100%': { opacity: 1 },    // No início e no fim, a opacidade é total
+          '50%': { opacity: 0.6 }, // Na metade, a opacidade é 60%
+        }
+      },
+      animation: {
+        'smooth-pulse': 'smooth-pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+      },
       fontFamily: {
         serif: ['"Times New Roman"', 'Times', 'serif'],
       },
