@@ -27,7 +27,7 @@ export function CountrySelector({ selectedCountries, onCountryChange }: CountryS
   return (
     <div className="flex flex-col space-y-2">
       <label className="text-sm text-slate-400">Países</label>
-      <div className="max-h-60 overflow-y-auto pr-2">
+      <div className="max-h-48 sm:max-h-60 overflow-y-auto pr-2">
         {AVAILABLE_COUNTRIES.map(country => (
           <label key={country.code} className="flex items-center space-x-2 p-1 rounded-md hover:bg-slate-700 cursor-pointer">
             <input

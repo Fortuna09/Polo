@@ -35,6 +35,7 @@ export function DashboardPage() {
   const [apiData, setApiData] = useState<any[]>([]);
   const [chartData, setChartData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [selectedCountries, setSelectedCountries] = useState<string[]>(['BR', 'US', 'CN', 'IN', 'DE']);
   const [selectedYear, setSelectedYear] = useState('2022');
@@ -176,9 +177,11 @@ export function DashboardPage() {
 
   return (
     <div className="h-screen bg-background text-text-primary flex flex-col">
-      <Header />
+      <Header onMenuClick={() => setIsSidebarOpen(true)} />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
           selectedYear={selectedYear}
           onYearChange={setSelectedYear}
           selectedCountries={selectedCountries}
@@ -189,33 +192,53 @@ export function DashboardPage() {
             if (newIndicator) setSelectedIndicator(newIndicator);
           }}
         />
-        <main className="flex-1 p-6 overflow-y-auto">
-          <div className="flex justify-between items-center mb-6">
+        <main className="flex-1 p-4 sm:p-6 overflow-y-auto">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+
             <h1 className="text-3xl font-bold">Dashboard</h1>
-            <div className="flex items-center bg-surface rounded-lg p-1">
+            <div className="w-full sm:w-auto bg-surface rounded-lg p-1 flex">
               <button
                 onClick={() => setChartType('bar')}
-                className={`px-4 py-1 rounded-md text-sm font-semibold transition-colors ${chartType === 'bar' ? 'bg-accent text-white' : 'text-slate-400 hover:bg-slate-700'
+                className={`
+          flex-1 sm:flex-none /* Ocupa espaço igual no mobile, tamanho normal no desktop */
+          px-3 sm:px-4        /* Padding responsivo */
+          py-1.5 rounded-md text-sm font-semibold transition-colors 
+          ${chartType === 'bar'
+                    ? 'bg-accent text-white'
+                    : 'text-slate-400 hover:bg-slate-700'
                   }`}
               >
                 Comparação
               </button>
               <button
                 onClick={() => setChartType('line')}
-                className={`px-4 py-1 rounded-md text-sm font-semibold transition-colors ${chartType === 'line' ? 'bg-accent text-white' : 'text-slate-400 hover:bg-slate-700'
+                className={`
+          flex-1 sm:flex-none 
+          px-3 sm:px-4 
+          py-1.5 rounded-md text-sm font-semibold transition-colors 
+          ${chartType === 'line'
+                    ? 'bg-accent text-white'
+                    : 'text-slate-400 hover:bg-slate-700'
                   }`}
               >
                 Tendência
               </button>
               <button
                 onClick={() => setChartType('map')}
-                className={`px-4 py-1 rounded-md text-sm font-semibold transition-colors ${chartType === 'map' ? 'bg-accent text-white' : 'text-slate-400 hover:bg-slate-700'
+                className={`
+          flex-1 sm:flex-none 
+          px-3 sm:px-4 
+          py-1.5 rounded-md text-sm font-semibold transition-colors 
+          ${chartType === 'map'
+                    ? 'bg-accent text-white'
+                    : 'text-slate-400 hover:bg-slate-700'
                   }`}
               >
                 Mapa
               </button>
             </div>
           </div>
+
           <div className="bg-slate-800 p-6 rounded-lg h-[500px] relative flex justify-center items-center">
             {isLoading ? <ChartSkeleton /> : (
               chartData ? (

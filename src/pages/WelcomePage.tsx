@@ -10,11 +10,11 @@ export function WelcomePage() {
       <div className="welcome-content">
         <img src={logo} alt="Polo Logo" className="h-20 w-20 mb-6 animate-smooth-pulse" />
         
-        <h1 className="text-6xl md:text-8xl font-serif font-bold mb-4 text-text-primary tracking-wider text-shadow">
+        <h1 className="text-5xl sm:text-6xl md:text-8xl font-serif font-bold mb-4 text-text-primary tracking-wider text-shadow">
           Polo
         </h1>
         
-        <p className="text-lg md:text-xl text-text-secondary max-w-2xl mb-10 leading-relaxed text-shadow">
+        <p className="text-base sm:text-lg md:text-xl text-text-secondary max-w-2xl mb-8 sm:mb-10 leading-relaxed text-shadow">
           Navegue pelos dados do mundo.
         </p>
         
