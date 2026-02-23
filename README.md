@@ -77,3 +77,5 @@ Durante o desenvolvimento do Polo, superei vários desafios técnicos que foram 
 **Rafael Fortuna**
 
 - **LinkedIn:** [linkedin.com/in/seu-perfil](https://www.linkedin.com/in/rafael-fortuna-990184264/)
+
+.
