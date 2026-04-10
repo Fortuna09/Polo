@@ -1,10 +1,10 @@
 {
   "titulo": "Polo - Dashboard de Análise de Dados",
-  "objetivo": "Desenvolver uma interface de dashboard responsiva e interativa para a visualização e análise de dados de vendas, faturamento e clientes, oferecendo insights de forma clara e intuitiva.",
-  "desafio": "O desafio foi integrar uma biblioteca de gráficos de forma performática, construir uma arquitetura de componentes modulares e garantir a responsividade completa das visualizações de dados em telas menores.",
+  "objetivo": "Potencializar a análise de faturamento e desempenho comercial através de um dashboard reativo que consolida métricas brutas em visualizações gerenciais intuitivas.",
+  "desafio": "Estruturar o processamento intensivo de dados e gerenciar a renderização de gráficos complexos de forma modular visando desempenho e responsividade irrestrita.",
   "imagem": "/image.png",
   "gif": "/preview.gif",
   "linkDemo": "https://polodata.netlify.app/",
-  "tags": ["React", "Chart.js", "Dashboard", "Data Visualization"],
-  "tecnologia": "React, Chart.js, CSS Modules, HTML5, Tailwind CSS"
+  "tags": ["React", "TypeScript", "Chart.js", "Data Visualization"],
+  "tecnologia": "React, Vite, TypeScript, Chart.js, Tailwind CSS"
 }
