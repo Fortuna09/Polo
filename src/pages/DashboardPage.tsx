@@ -9,7 +9,7 @@ import { ChartSkeleton } from '../components/ChartSkeleton';
 import { WorldMap } from '../components/WorldMap';
 
 //services and libs
-import { fetchWorldBankData } from '../services/worldBankApi';
+import { fetchWorldBankData, isRequestCancelled } from '../services/worldBankApi';
 import { countryNameMap } from '../lib/translations';
 import { INDICATORS } from '../lib/indicators';
 import type { Indicator } from '../lib/indicators';
@@ -43,22 +43,31 @@ export function DashboardPage() {
   const [selectedIndicator, setSelectedIndicator] = useState<Indicator>(INDICATORS[0]);
 
   useEffect(() => {
-    if (selectedCountries.length > 0) {
-      async function loadData() {
-        setIsLoading(true);
-        try {
-          const data = await fetchWorldBankData(selectedCountries, selectedIndicator.code);
-          setApiData(data);
-        } catch (error) {
-          console.error("Falha ao carregar dados", error);
-        } finally {
-          setIsLoading(false);
-        }
-      }
-      loadData();
-    } else {
+    if (selectedCountries.length === 0) {
       setApiData([]);
+      return;
     }
+
+    // Cancela a requisição anterior se a seleção mudar antes dela responder,
+    // pra uma resposta antiga não sobrescrever um resultado mais recente.
+    const controller = new AbortController();
+
+    async function loadData() {
+      setIsLoading(true);
+      try {
+        const data = await fetchWorldBankData(selectedCountries, selectedIndicator.code, controller.signal);
+        setApiData(data);
+        setIsLoading(false);
+      } catch (error) {
+        if (isRequestCancelled(error)) return;
+        console.error("Falha ao carregar dados", error);
+        setIsLoading(false);
+      }
+    }
+
+    loadData();
+
+    return () => controller.abort();
   }, [selectedCountries, selectedIndicator]);
 
   useEffect(() => {
